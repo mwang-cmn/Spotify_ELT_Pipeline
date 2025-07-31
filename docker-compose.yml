@@ -1,0 +1,37 @@
+
+services:
+  spotify-pipeline:
+    build: .
+    container_name: spotify_pipeline
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - prometheus
+    command: python spotify_pipeline.py
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes: 
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  grafana-storage:
